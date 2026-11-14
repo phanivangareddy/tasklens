@@ -1,0 +1,28 @@
+name: tasklens
+arch: ${ARCH}
+platform: linux
+version: ${VERSION}
+release: 1
+section: utils
+maintainer: Phani Vanga
+description: |
+  TaskLens is a home system monitor: it shows every running process and what
+  it uses, explains what is slowing the computer down, finds what fills the
+  disk, and warns you (pop-ups and email) before memory or disk run out.
+license: Proprietary
+contents:
+  - src: ../build/linux/tasklens
+    dst: /usr/bin/tasklens
+    file_info: { mode: 0755 }
+  - src: ./tasklens.desktop
+    dst: /usr/share/applications/tasklens.desktop
+  - src: ./icon-256.png
+    dst: /usr/share/icons/hicolor/256x256/apps/tasklens.png
+recommends:
+  - xdg-utils
+  - zenity
+overrides:
+  deb:
+    recommends: [xdg-utils, zenity, libnotify-bin]
+  rpm:
+    recommends: [xdg-utils, zenity, libnotify]

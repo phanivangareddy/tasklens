@@ -1,0 +1,14 @@
+# Build output (installers go to GitHub Releases, not git)
+build/
+dist/
+*.exe
+*.dmg
+*.deb
+*.rpm
+# Local and OS files
+.DS_Store
+*.log
+.env
+.env.*
+instance.json
+settings.json

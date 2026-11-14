@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=TaskLens
+GenericName=Task Manager
+Comment=See what is running, how long, and stop it
+Exec=/usr/bin/tasklens
+Icon=tasklens
+Terminal=false
+Categories=System;Monitor;
+Keywords=task;process;monitor;kill;performance;

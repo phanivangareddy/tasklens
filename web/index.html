@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TaskLens</title>
+<link rel="icon" href="icon.png">
+<style>
+:root {
+  --bg: #f5f6f8; --panel: #ffffff; --line: #e3e5ea; --fg: #1b1d22; --muted: #6b7080;
+  --accent: #2f6fde; --ok: #1f9d63; --warn: #c98a0b; --bad: #d6453d; --row: #f9fafb;
+  --chip: #eef1f6; --shadow: 0 1px 2px rgba(0,0,0,.05), 0 2px 8px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #131417; --panel: #1c1e23; --line: #2c2f36; --fg: #e9eaee; --muted: #9096a3;
+    --accent: #6aa0ff; --ok: #4cc38a; --warn: #f0b341; --bad: #ef6b63; --row: #202228;
+    --chip: #262930; --shadow: none;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif; }
+header { display: flex; align-items: center; gap: 12px; padding: 14px 20px;
+  background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
+header img { width: 26px; height: 26px; }
+header h1 { font-size: 17px; margin: 0; font-weight: 650; }
+header .host { color: var(--muted); font-size: 13px; }
+header .spacer { flex: 1; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); display: inline-block; margin-right: 6px; }
+.dot.off { background: var(--muted); }
+button { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--fg);
+  border-radius: 7px; padding: 5px 11px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button.danger { color: var(--bad); }
+button.danger.solid { background: var(--bad); border-color: var(--bad); color: #fff; }
+button.small { padding: 2px 8px; font-size: 12px; }
+main { padding: 18px 20px 40px; max-width: 1400px; margin: 0 auto; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; box-shadow: var(--shadow); }
+.card .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+.card .value { font-size: 22px; font-weight: 650; margin: 2px 0 6px; font-variant-numeric: tabular-nums; }
+.card .sub { color: var(--muted); font-size: 12px; }
+.bar { height: 6px; border-radius: 3px; background: var(--chip); overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--ok); transition: width .4s; }
+.bar > i.warn { background: var(--warn); } .bar > i.bad { background: var(--bad); }
+.insights { margin: 16px 0; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; box-shadow: var(--shadow); }
+.insights h2 { font-size: 14px; margin: 0 0 6px; }
+.insights ul { margin: 0; padding-left: 18px; }
+.insights li { margin: 3px 0; }
+.insights li.bad::marker { color: var(--bad); } .insights li.warn::marker { color: var(--warn); } .insights li.ok::marker { color: var(--ok); }
+.insights a { color: var(--accent); cursor: pointer; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+.toolbar input { font: inherit; padding: 6px 10px; border: 1px solid var(--line); border-radius: 7px;
+  background: var(--panel); color: var(--fg); min-width: 240px; flex: 0 1 320px; }
+.chip { border-radius: 999px; padding: 4px 12px; background: var(--chip); border-color: transparent; }
+.chip.on { background: var(--accent); color: #fff; }
+.count { color: var(--muted); font-size: 13px; margin-left: auto; }
+.tablewrap { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: auto; box-shadow: var(--shadow); }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { padding: 7px 10px; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--line); }
+th { position: sticky; top: 0; background: var(--panel); font-size: 12px; color: var(--muted); font-weight: 600;
+  cursor: pointer; user-select: none; }
+th.num, td.num { text-align: right; }
+th.sorted { color: var(--fg); }
+tbody tr:hover { background: var(--row); }
+td.name { max-width: min(340px, 32vw); overflow: hidden; text-overflow: ellipsis; font-weight: 550; }
+td.name small { display: block; color: var(--muted); font-weight: 400; overflow: hidden; text-overflow: ellipsis; font-size: 11.5px; }
+.badge { font-size: 11px; padding: 1px 6px; border-radius: 4px; background: var(--chip); color: var(--muted); margin-left: 6px; font-weight: 500; }
+.badge.paused { background: var(--warn); color: #000; }
+.heat-2 { color: var(--warn); font-weight: 600; } .heat-3 { color: var(--bad); font-weight: 700; }
+td.actions { display: flex; gap: 4px; }
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; z-index: 20; padding: 16px; }
+.modal-bg.show { display: flex; }
+.modal { background: var(--panel); border-radius: 12px; padding: 18px 20px; max-width: 460px; width: 100%; border: 1px solid var(--line); }
+.modal h3 { margin: 0 0 8px; font-size: 16px; }
+.modal p { margin: 6px 0; color: var(--muted); }
+.modal .warnbox { color: var(--bad); }
+.modal .row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+.toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: var(--fg); color: var(--bg);
+  padding: 9px 16px; border-radius: 8px; max-width: 90vw; display: none; z-index: 30; }
+.toast.show { display: block; }
+.gone { padding: 60px 20px; text-align: center; color: var(--muted); }
+.tabs { display: flex; gap: 4px; margin-left: 8px; }
+.tabs button { border-color: transparent; background: transparent; color: var(--muted); font-weight: 550; }
+.tabs button.on { background: var(--chip); color: var(--fg); }
+.card.link { cursor: pointer; } .card.link:hover { border-color: var(--accent); }
+.crumbs { display: flex; flex-wrap: wrap; gap: 2px; align-items: center; margin: 4px 0 10px; font-size: 15px; }
+.crumbs a { color: var(--accent); cursor: pointer; padding: 2px 4px; border-radius: 5px; }
+.crumbs a:hover { background: var(--chip); }
+.crumbs b { padding: 2px 4px; }
+.crumbs span { color: var(--muted); }
+.drow { cursor: pointer; }
+td.dname { max-width: min(520px, 46vw); overflow: hidden; text-overflow: ellipsis; font-weight: 550; }
+td.dname small { display: block; color: var(--muted); font-weight: 400; font-size: 11.5px; white-space: normal; }
+td.dname .ic { display: inline-block; width: 1.3em; }
+td.share { width: 28%; min-width: 120px; }
+td.share .bar { height: 8px; } td.share .bar > i { background: var(--accent); }
+td.share .bar > i.f { background: var(--warn); }
+h3.sec { font-size: 14px; margin: 18px 0 8px; }
+.placebar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.placebar input { font: inherit; padding: 6px 10px; border: 1px solid var(--line); border-radius: 7px;
+  background: var(--panel); color: var(--fg); flex: 1 1 260px; min-width: 0; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.spin { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--line); border-top-color: var(--accent);
+  border-radius: 50%; animation: sp 0.8s linear infinite; vertical-align: -2px; margin-right: 6px; }
+@keyframes sp { to { transform: rotate(360deg); } }
+[hidden] { display: none !important; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin: 16px 0; box-shadow: var(--shadow); }
+.panel h2 { font-size: 15px; margin: 0 0 4px; display: flex; align-items: center; gap: 10px; }
+.panel h2 .spacer { flex: 1; }
+.panel .lead { color: var(--muted); margin: 0 0 10px; }
+.panel label.row { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; border-top: 1px solid var(--line); }
+.panel label.row:first-of-type { border-top: 0; }
+.panel label.row input[type=checkbox] { margin-top: 3px; }
+.panel label.row .tag { font-size: 11px; padding: 1px 6px; border-radius: 4px; margin-left: 6px; background: var(--chip); color: var(--muted); }
+.panel label.row .tag.urgent { background: var(--bad); color: #fff; }
+.panel input.n { width: 58px; font: inherit; padding: 2px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); text-align: right; }
+.panel input.t, .panel select { font: inherit; padding: 6px 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--bg); color: var(--fg); min-width: 0; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; border-right: 1px solid var(--line); }
+.seg button:last-child { border-right: 0; }
+.seg button.on { background: var(--accent); color: #fff; }
+.form { display: grid; grid-template-columns: 170px 1fr; gap: 8px 12px; align-items: center; max-width: 720px; margin: 10px 0; }
+.form .full { grid-column: 1 / -1; }
+.help { background: var(--row); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; color: var(--muted); font-size: 13px; }
+.help ol { margin: 4px 0 0; padding-left: 20px; }
+.help a { color: var(--accent); }
+.people { display: flex; flex-direction: column; gap: 6px; margin: 6px 0; }
+.people .person { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.people .person .em { font-weight: 550; min-width: 220px; }
+.ok-text { color: var(--ok); } .bad-text { color: var(--bad); }
+.alog li { margin: 6px 0; } .alog .when { color: var(--muted); font-size: 12px; margin-right: 6px; }
+.alog .body { color: var(--muted); display: block; }
+.switch { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; font-size: 13px; color: var(--muted); }
+
+/* Report */
+:root { --cpu: #2f6fde; --mem: #8b5cf6; --gap: rgba(107,112,128,.13); --hot: rgba(214,69,61,.10); }
+@media (prefers-color-scheme: dark) { :root { --cpu: #6aa0ff; --mem: #b499ff; --gap: rgba(144,150,163,.14); --hot: rgba(239,107,99,.14); } }
+.rhead { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 4px 0 12px; }
+.rhead h2 { font-size: 17px; margin: 0; }
+.chart { position: relative; }
+.chart svg { width: 100%; height: 230px; display: block; }
+.chart .axis { fill: var(--muted); font-size: 11px; }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .tip { position: absolute; pointer-events: none; background: var(--fg); color: var(--bg); padding: 6px 9px; border-radius: 7px;
+  font-size: 12px; white-space: nowrap; display: none; z-index: 3; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); margin-top: 6px; }
+.legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 5px; }
+.legend i.box { height: 10px; width: 12px; border-radius: 2px; }
+.kind { font-size: 11px; padding: 1px 7px; border-radius: 4px; font-weight: 600; margin-right: 6px; background: var(--chip); color: var(--muted); }
+.kind.crash, .kind.unexpected, .kind.system { background: var(--bad); color: #fff; }
+.kind.memory, .kind.hang { background: var(--warn); color: #000; }
+.kind.normal, .kind.update { background: var(--ok); color: #fff; }
+.rlist { list-style: none; margin: 0; padding: 0; }
+.rlist li { padding: 9px 0; border-top: 1px solid var(--line); }
+.rlist li:first-child { border-top: 0; }
+.rlist .when { font-weight: 600; margin-right: 6px; }
+.rlist .sub { color: var(--muted); display: block; margin-top: 2px; }
+td.wrap { white-space: normal; min-width: 220px; }
+.empty { color: var(--muted); }
+@media print {
+  :root { --bg: #fff; --panel: #fff; --fg: #000; --muted: #444; --line: #ccc; --chip: #eee; --row: #fff; --shadow: none; }
+  header button, header .tabs, header #live, header #liveText, #cards, .noprint, .toast { display: none !important; }
+  header { position: static; } main { padding: 0; max-width: none; }
+  .panel, .tablewrap, .insights { break-inside: avoid; }
+}
+@media (max-width: 700px) {
+  .rhead .seg { order: 3; }
+  .form { grid-template-columns: 1fr; }
+  td.dname { max-width: 170px; } .tabs { margin-left: 0; }
+  header .host { display: none; } td.name { max-width: 150px; } .toolbar input { min-width: 0; flex: 1 1 100%; }
+  .opt { display: none; } th, td { padding: 7px 6px; } main { padding: 14px 12px 32px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <img src="icon.png" alt="">
+  <h1>TaskLens</h1>
+  <nav class="tabs"><button data-tab="procs" class="on">Processes</button><button data-tab="disk">Disk</button><button data-tab="alerts">Alerts</button><button data-tab="report">Report</button></nav>
+  <span class="host" id="host"></span>
+  <span class="spacer"></span>
+  <span class="host"><span class="dot" id="live"></span><span id="liveText">Live</span></span>
+  <button id="pauseBtn" title="Stop refreshing the list">Freeze</button>
+  <button id="quitBtn" title="Close TaskLens">Quit</button>
+</header>
+<main id="main">
+  <section class="cards" id="cards"></section>
+  <div id="procView">
+  <section class="insights"><h2>What's slowing things down</h2><ul id="insights"><li>Measuring…</li></ul></section>
+  <div class="toolbar">
+    <input id="search" type="search" placeholder="Search by name, PID, user or command">
+    <button class="chip on" data-filter="all">All</button>
+    <button class="chip" data-filter="mine">My processes</button>
+    <button class="chip" data-filter="heavy">Heavy</button>
+    <button class="chip" data-filter="paused">Paused</button>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr>
+        <th data-key="name">Name</th>
+        <th data-key="pid" class="num">PID</th>
+        <th data-key="cpu" class="num">CPU</th>
+        <th data-key="mem" class="num">Memory</th>
+        <th data-key="started" class="num" title="How long since it started">Running for</th>
+        <th data-key="cpuSec" class="num opt" title="Total processor time it has used">CPU time</th>
+        <th data-key="user" class="opt">User</th>
+        <th>Actions</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  </div>
+
+  <div id="diskView" hidden>
+    <div class="placebar" style="margin-top:16px">
+      <span id="places"></span>
+      <input id="dpath" type="text" placeholder="Or type a folder path to scan" spellcheck="false">
+      <button id="dscan" class="primary">Scan</button>
+    </div>
+    <section class="insights"><h2 id="dhead">Where your disk space went</h2><ul id="dstatus"><li>Pick a place to scan.</li></ul></section>
+    <nav class="crumbs" id="crumbs"></nav>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Name</th><th class="num">Size</th><th>Share of this folder</th>
+          <th class="num opt">Files</th><th class="num opt">Last changed</th><th></th></tr></thead>
+        <tbody id="drows"></tbody>
+      </table>
+    </div>
+    <h3 class="sec" id="bighead">Biggest files in here (including all subfolders)</h3>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>File</th><th class="num">Size</th><th class="num opt">Last changed</th><th></th></tr></thead>
+        <tbody id="dbig"></tbody>
+      </table>
+    </div>
+  </div>
+<div id="alertsView" hidden>
+    <section class="panel">
+      <h2>Pop-ups on this computer <span class="spacer"></span>
+        <label class="switch"><input type="checkbox" id="sPopups"> On</label></h2>
+      <p class="lead">TaskLens checks every 15 seconds and warns you <b>before</b> the computer gets slow. Serious problems open a
+        small window with <b>Open TaskLens</b> and <b>Pause</b> buttons; smaller ones are ordinary notifications.</p>
+      <button id="tWarn">Show a test notification</button> <button id="tCrit">Show a test urgent pop-up</button>
+    </section>
+
+    <section class="panel">
+      <h2>When to warn</h2>
+      <p class="lead">Pick how sensitive TaskLens should be, or change any number yourself.</p>
+      <div class="seg" id="sens">
+        <button data-sens="relaxed">Relaxed</button><button data-sens="normal">Normal</button>
+        <button data-sens="strict">Strict</button><button data-sens="custom" disabled>Custom</button>
+      </div>
+      <div id="rules" style="margin-top:10px"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Email alerts <span class="spacer"></span>
+        <label class="switch"><input type="checkbox" id="sEmail"> On</label></h2>
+      <p class="lead">Send alerts to you and your family, from your own email account. Nothing goes through TaskLens servers.</p>
+      <div class="form">
+        <span>Send from</span>
+        <select id="eProv">
+          <option value="gmail">Gmail</option><option value="icloud">iCloud Mail</option>
+          <option value="yahoo">Yahoo Mail</option><option value="custom">Other (enter server)</option>
+        </select>
+        <span class="cust">Mail server</span><span class="cust"><input class="t" id="eHost" placeholder="smtp.example.com" style="width:240px"> port
+          <input class="t" id="ePort" type="number" style="width:80px"></span>
+        <span>Sender email address</span><input class="t" id="eUser" type="email" placeholder="you@gmail.com" autocomplete="off">
+        <span>App password</span>
+        <span><input class="t" id="ePass" type="password" placeholder="16-letter app password" autocomplete="new-password" style="width:220px">
+          <button id="eSavePw">Save password</button> <span id="pwState"></span></span>
+        <div class="full help" id="eHelp"></div>
+      </div>
+      <h3 class="sec" style="margin-top:6px">People to alert</h3>
+      <div class="people" id="people"></div>
+      <div class="person" style="display:flex;gap:8px;flex-wrap:wrap">
+        <input class="t" id="newPerson" type="email" placeholder="name@example.com" style="flex:1 1 240px;max-width:340px">
+        <button id="addPerson">Add person</button>
+      </div>
+      <p style="margin:12px 0 0"><button id="tEmail" class="primary">Send a test email</button>
+        <span id="emailState" style="margin-left:8px"></span></p>
+    </section>
+
+    <section class="panel">
+      <h2>Running in the background</h2>
+      <label class="row"><input type="checkbox" id="sBg"><span><b>Keep watching after I close this page</b><br>
+        <span style="color:var(--muted)">TaskLens stays in the <span class="trayname">menu bar</span> and keeps checking. It uses about 25 MB of memory and almost no processor.</span></span></label>
+      <label class="row"><input type="checkbox" id="sLogin"><span><b>Start at login</b><br>
+        <span style="color:var(--muted)">Start TaskLens quietly each time you log in, so you're always covered.</span></span></label>
+    </section>
+
+    <section class="panel">
+      <h2>Recent alerts</h2>
+      <ul class="alog" id="alog"><li style="color:var(--muted)">No alerts yet. That's good news.</li></ul>
+    </section>
+  </div>
+
+  <div id="reportView" hidden>
+    <div class="rhead">
+      <h2>Report</h2>
+      <div class="seg" id="rDays"><button data-days="1">24 hours</button><button data-days="7">7 days</button><button data-days="14" class="on">14 days</button></div>
+      <span class="spacer" style="flex:1"></span>
+      <span class="noprint">
+        <button id="rPrint">Print or save as PDF</button>
+        <button id="rEmail">Email to my list</button>
+      </span>
+    </div>
+    <section class="insights"><h2>In short</h2><ul id="rSummary"><li>Reading the history…</li></ul></section>
+
+    <section class="panel">
+      <h2>Processor and memory over time</h2>
+      <div class="chart" id="rChart"></div>
+      <div class="legend"><span><i style="background:var(--cpu)"></i>Processor busy</span><span><i style="background:var(--mem)"></i>Memory in use</span>
+        <span><i class="box" style="background:var(--hot)"></i>Slow: over 90% for 10+ minutes</span>
+        <span><i class="box" style="background:var(--gap)"></i>Off, asleep, or TaskLens not running</span>
+        <span><i style="background:var(--bad)"></i>Restart</span></div>
+    </section>
+
+    <section class="panel">
+      <h2>Restarts</h2>
+      <p class="lead">When the computer started up again, and the most likely reason, from the system's own records.</p>
+      <ul class="rlist" id="rRestarts"></ul>
+    </section>
+
+    <section class="panel">
+      <h2>When it was slow or stuck</h2>
+      <p class="lead">Times memory was over 90% full or the processor over 90% busy for 10 minutes or more, and the app most responsible.</p>
+      <div class="tablewrap"><table><thead><tr><th>When</th><th>How long</th><th>What</th><th>Most likely cause</th></tr></thead>
+        <tbody id="rSlow"></tbody></table></div>
+    </section>
+
+    <section class="panel">
+      <h2>Apps that used the most</h2>
+      <p class="lead">Apps with the same name (for example browser helpers) are added together.</p>
+      <div class="tablewrap"><table><thead><tr><th>App</th><th>Share of processor use</th><th class="num">Processor time</th>
+        <th class="num">Most memory</th><th class="opt">When</th></tr></thead><tbody id="rApps"></tbody></table></div>
+    </section>
+
+    <section class="panel">
+      <h2>Problems the system recorded</h2>
+      <p class="lead">App crashes, apps that stopped responding, and times memory ran out so the system closed apps.</p>
+      <ul class="rlist" id="rProblems"></ul>
+    </section>
+
+    <section class="panel noprint">
+      <h2>History <span class="spacer"></span><label class="switch"><input type="checkbox" id="sHist"> Keep a 2-week history</label></h2>
+      <p class="lead" id="rFoot">TaskLens saves a small summary every 5 minutes (about 100 KB a day) and deletes anything older than 14 days.
+        It only records while it is running, so turn on <b>Start at login</b> in Alerts for a complete picture.</p>
+      <label class="switch"><input type="checkbox" id="sWeekly"> Email this report to my list every week (uses the email settings in Alerts)</label>
+    </section>
+  </div>
+</main>
+
+<div class="modal-bg" id="modal"><div class="modal">
+  <h3 id="mTitle"></h3>
+  <p id="mBody"></p>
+  <p id="mWarn" class="warnbox"></p>
+  <div class="row"><button id="mCancel">Cancel</button><button id="mOk" class="danger solid"></button></div>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
