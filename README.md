@@ -1,9 +1,25 @@
 # TaskLens
 
-A task manager for **Windows, macOS and Linux**. It shows every running process,
-how long it has been running, how much processor time and memory it uses, and
-explains in plain words what is slowing the computer down. You can **Pause**,
-**Resume**, **End** or **Force end** any process (each one asks for confirmation).
+**A free, open-source task manager for Windows, macOS and Linux that explains in
+plain words what is slowing your computer down.**
+
+[**⬇ Download the latest version**](https://github.com/phanivangareddy/tasklens/releases/latest)
+· [User guide](docs/USER_GUIDE.md) · [What's new](CHANGELOG.md) · [Security](docs/SECURITY.md)
+
+- See every running program: how long it has run, its processor time and memory.
+- **Click the Memory card to see exactly what's using your RAM**, one line per app,
+  plus what Windows or macOS itself is holding.
+- **Pause**, **Resume**, **End** or **Force end** any process (each one asks first).
+- Find what's filling your disk, get warned before memory runs out, and see a report
+  of restarts, crashes and slow periods over the last two weeks.
+- Small and private: about 25–60 MB of memory, nothing leaves your computer, no
+  account, no ads, no tracking.
+
+## What it does
+
+The **Processes** tab lists every running process, sorted by memory, with a short
+"What's slowing things down" summary on top. Click the **Memory** card for a
+breakdown of which apps hold the memory; click an app to see its processes.
 
 The **Disk** tab answers "where did my disk space go?". It scans your home folder
 (or the whole disk, another drive, or any folder you type) in seconds, then lets you
@@ -38,8 +54,7 @@ print the report, save it as a PDF, email it, or have it emailed weekly.
 
 Security testing, findings and the release-signing plan: [docs/SECURITY.md](docs/SECURITY.md).
 
-**Full instructions for users: [docs/USER_GUIDE.md](docs/USER_GUIDE.md)** (also
-copied into `dist/` by the build).
+**Full instructions for users: [docs/USER_GUIDE.md](docs/USER_GUIDE.md).**
 
 TaskLens runs a tiny private web server on `127.0.0.1` and opens its dashboard in
 your default browser, so the same app looks and works the same on every system.
@@ -47,7 +62,9 @@ Nothing leaves the computer, and only the tab TaskLens opened can talk to it (it
 uses a random per-launch key). It closes itself 3 minutes after the last TaskLens
 tab is closed, or straight away from the **Quit** button.
 
-## Installers (`dist/`)
+## Download and install
+
+Get the files from the [latest release](https://github.com/phanivangareddy/tasklens/releases/latest).
 
 | System | File | Install |
 |---|---|---|
@@ -105,3 +122,12 @@ Everything is cross-built from one Mac into `dist/`. The code is `main.go` (serv
 and launch), `collect.go` (process sampling and actions), `disk.go` (disk scanner), `alerts.go` (alert rules), `notify.go` (pop-ups and email), `settings.go`, `tray.go`, `autostart_*.go`, `web/index.html`
 (dashboard), and `packaging/` (icon, installer definitions). Change `version` in
 `main.go` to release a new version.
+
+
+## License
+
+TaskLens is open source under the [MIT License](LICENSE). The security skills in
+`.claude/skills` are third-party files under their own Apache 2.0 license (see
+`.claude/skills/README.md`).
+
+Found a bug or have an idea? [Open an issue](https://github.com/phanivangareddy/tasklens/issues).
