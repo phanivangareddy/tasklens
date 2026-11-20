@@ -32,7 +32,7 @@ import (
 //go:embed web
 var webFS embed.FS
 
-var version = "1.3.1"
+var version = "1.3.2"
 
 // The app quits on its own this long after the last dashboard request,
 // i.e. once every TaskLens tab has been closed.

@@ -39,6 +39,7 @@ type System struct {
 	CPU      float64   `json:"cpu"`
 	MemTotal uint64    `json:"memTotal"`
 	MemUsed  uint64    `json:"memUsed"`
+	Kernel   uint64    `json:"kernel,omitempty"` // Windows: kernel and drivers, owned by no process
 	SwapUsed uint64    `json:"swapUsed"`
 	SwapTot  uint64    `json:"swapTotal"`
 	Uptime   uint64    `json:"uptime"`
@@ -200,6 +201,7 @@ func (c *collector) sample() {
 	if vm, err := mem.VirtualMemory(); err == nil {
 		s.MemTotal, s.MemUsed = vm.Total, vm.Total-vm.Available
 	}
+	s.Kernel = kernelMemory()
 	if sw, err := mem.SwapMemory(); err == nil {
 		s.SwapUsed, s.SwapTot = sw.Used, sw.Total
 	}

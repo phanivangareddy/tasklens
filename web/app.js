@@ -52,7 +52,7 @@ function renderCards(s) {
   const diskPct = s.diskTotal ? (1 - s.diskFree / s.diskTotal) * 100 : 0;
   $("cards").innerHTML =
     card("CPU", s.cpu.toFixed(0) + "%", `${s.cores} cores` + (s.load ? ` · load ${s.load[0].toFixed(1)}` : ""), s.cpu) +
-    card("Memory", memPct.toFixed(0) + "%", `${bytes(s.memUsed)} of ${bytes(s.memTotal)}`, memPct) +
+    card("Memory", memPct.toFixed(0) + "%", `${bytes(s.memUsed)} of ${bytes(s.memTotal)} · click to see what's using it`, memPct, "mem") +
     card("Swap", bytes(s.swapUsed), s.swapTotal ? `of ${bytes(s.swapTotal)} · memory moved to disk` : "not in use", s.swapTotal ? swapPct : null) +
     card("Disk", bytes(s.diskFree) + " free", `of ${bytes(s.diskTotal)} · click to see what's using it`, diskPct, "disk") +
     card("Up for", dur(s.uptime), s.os, null);
@@ -108,6 +108,75 @@ function visible(procs) {
   });
 }
 
+// ---- Memory breakdown: which apps hold the memory, and what no app owns ----
+const MEM_COLORS = ["#8b5cf6", "#2f6fde", "#1f9d63", "#c98a0b", "#d6453d", "#0e9fb0", "#c2459b", "#6b7080"];
+
+function openMemory() {
+  showTab("procs");
+  $("memPanel").hidden = false;
+  sortKey = "mem"; sortDir = -1;
+  filter = "all";
+  document.querySelectorAll("[data-filter]").forEach(c => c.classList.toggle("on", c.dataset.filter === "all"));
+  $("search").value = "";
+  if (snap) { renderMemory(); renderRows(); }
+  $("memPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// One app (Chrome, Edge, Teams…) usually runs as many processes; add them up.
+function memoryGroups(procs) {
+  const groups = new Map();
+  for (const p of procs) {
+    // "Google Chrome Helper (Renderer)" belongs to Google Chrome.
+    const name = p.name.replace(/\.exe$/i, "").replace(/ Helper( \(.*\))?$/, "");
+    const key = name.toLowerCase();
+    const g = groups.get(key) || { name, mem: 0, count: 0, unread: 0 };
+    g.mem += p.mem; g.count++;
+    if (!p.mem) g.unread++;
+    groups.set(key, g);
+  }
+  return [...groups.values()].sort((a, b) => b.mem - a.mem);
+}
+
+function renderMemory() {
+  const s = snap.system, isWin = /windows/i.test(s.os);
+  const groups = memoryGroups(snap.procs);
+  const appsTotal = groups.reduce((t, g) => t + g.mem, 0);
+  const unread = snap.procs.filter(p => !p.mem).length;
+  const top = groups.slice(0, 12);
+  const restMem = groups.slice(12).reduce((t, g) => t + g.mem, 0);
+  const kernel = s.kernel || 0;
+  const leftover = Math.max(0, s.memUsed - appsTotal - kernel);
+
+  const rows = top.map((g, i) => ({ color: MEM_COLORS[i % 7], label: `<a data-app="${esc(g.name)}">${esc(g.name)}</a>`,
+    sub: g.count > 1 ? `${g.count} processes` : "", mem: g.mem }));
+  if (restMem) rows.push({ color: MEM_COLORS[7], label: "All other apps", sub: `${groups.length - 12} more apps`, mem: restMem });
+  if (kernel) rows.push({ color: "#555a66", label: "Windows itself", sub: "kernel and drivers; no app owns this", mem: kernel });
+  if (leftover > 64 * 1024 ** 2) rows.push({ color: "#9aa0ad", label: "Not linked to one app",
+    sub: isWin ? "compressed memory, graphics, and protected system processes"
+               : "the system's own memory (wired and compressed)", mem: leftover });
+
+  const scale = Math.max(s.memTotal, appsTotal + kernel);
+  $("memLead").textContent = `${bytes(s.memUsed)} of ${bytes(s.memTotal)} in use. ` +
+    (top[0] ? `The biggest is ${top[0].name} with ${bytes(top[0].mem)}. ` : "") +
+    "Click an app to see its processes in the list below.";
+  $("memStack").innerHTML = rows.map(r =>
+    `<i style="width:${(r.mem / scale * 100).toFixed(2)}%;background:${r.color}" title="${esc(r.label.replace(/<[^>]+>/g, ""))}: ${bytes(r.mem)}"></i>`).join("");
+  $("memRows").innerHTML = rows.map(r => `<tr>
+      <td class="sw"><i style="background:${r.color}"></i></td>
+      <td>${r.label}${r.sub ? `<small>${r.sub}</small>` : ""}</td>
+      <td class="num">${bytes(r.mem)}</td>
+      <td class="mbar"><div class="bar"><i style="width:${Math.min(100, r.mem / s.memTotal * 100).toFixed(1)}%"></i></div></td>
+      <td class="num">${(r.mem / s.memTotal * 100).toFixed(0)}%</td></tr>`).join("");
+
+  const notes = [];
+  if (isWin) notes.push("Memory figures are each app's working set, the same number as the Memory column in Task Manager's Details tab. " +
+    "Windows also counts memory as \"in use\" for the kernel, drivers and compressed memory, which is why a fresh start can already show several GB used.");
+  if (unread) notes.push(`${unread} protected system processes can't be measured without administrator rights; their memory is in "Not linked to one app". ` +
+    (isWin ? "To include them, right-click TaskLens and choose \"Run as administrator\"." : ""));
+  if (appsTotal > s.memUsed) notes.push("Apps share some memory (common libraries), so the app figures add up to more than the total in use.");
+  $("memNote").textContent = notes.join(" ");
+}
+
 function renderRows() {
   const total = snap.system.memTotal;
   const list = visible(snap.procs);
@@ -146,6 +215,7 @@ async function refresh() {
     snap = next;
     renderCards(snap.system);
     renderInsights(snap.system, snap.procs);
+    if (!$("memPanel").hidden) renderMemory();
     if (overList || $("modal").classList.contains("show")) rowsStale = true;
     else renderRows();
   } catch (e) {
@@ -385,7 +455,18 @@ function renderDisk(v) {
 }
 
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => showTab(b.dataset.tab));
-$("cards").addEventListener("click", e => { if (e.target.closest("[data-go=disk]")) showTab("disk"); });
+$("cards").addEventListener("click", e => {
+  if (e.target.closest("[data-go=disk]")) showTab("disk");
+  if (e.target.closest("[data-go=mem]")) openMemory();
+});
+$("memClose").onclick = () => { $("memPanel").hidden = true; };
+$("memRows").addEventListener("click", e => {
+  const a = e.target.closest("[data-app]");
+  if (!a) return;
+  $("search").value = a.dataset.app;
+  renderRows();
+  document.querySelector(".tablewrap").scrollIntoView({ behavior: "smooth", block: "start" });
+});
 $("diskView").addEventListener("click", async e => {
   const rv = e.target.closest("[data-reveal]");
   if (rv) {

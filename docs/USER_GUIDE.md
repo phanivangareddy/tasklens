@@ -1,6 +1,6 @@
 # TaskLens User Guide
 
-**Version 1.3.1 · For Windows, macOS and Linux · Home use**
+**Version 1.3.2 · For Windows, macOS and Linux · Home use**
 
 TaskLens watches your computer and tells you, in plain words, what is slowing it
 down. It also shows what is filling your disk, and it **warns you before** memory or
@@ -59,12 +59,12 @@ Download the file for your computer:
 
 | Your computer | Download |
 |---|---|
-| Mac (any) | `TaskLens-1.3.1-macOS.dmg` |
-| Windows (most PCs) | `TaskLens-1.3.1-Windows-x64-Setup.exe` |
-| Windows, no install (USB stick, work PC) | `TaskLens-1.3.1-Windows-x64-portable.exe` |
-| Windows on ARM (Surface Pro X, Copilot+ PCs) | `TaskLens-1.3.1-Windows-ARM64-portable.exe` |
-| Fedora, RHEL, CentOS, openSUSE | `tasklens-1.3.1-1.x86_64.rpm` (or `.aarch64.rpm`) |
-| Ubuntu, Debian, Mint, Pop!_OS | `tasklens_1.3.1-1_amd64.deb` (or `_arm64.deb`) |
+| Mac (any) | `TaskLens-1.3.2-macOS.dmg` |
+| Windows (most PCs) | `TaskLens-1.3.2-Windows-x64-Setup.exe` |
+| Windows, no install (USB stick, work PC) | `TaskLens-1.3.2-Windows-x64-portable.exe` |
+| Windows on ARM (Surface Pro X, Copilot+ PCs) | `TaskLens-1.3.2-Windows-ARM64-portable.exe` |
+| Fedora, RHEL, CentOS, openSUSE | `tasklens-1.3.2-1.x86_64.rpm` (or `.aarch64.rpm`) |
+| Ubuntu, Debian, Mint, Pop!_OS | `tasklens_1.3.2-1_amd64.deb` (or `_arm64.deb`) |
 
 > **Checking the download (optional):** `SHA256SUMS.txt` lists a fingerprint for
 > every file. On Mac/Linux run `shasum -a 256 <file>`; on Windows run
@@ -72,7 +72,7 @@ Download the file for your computer:
 
 ### 3.1 macOS
 
-1. Double-click **TaskLens-1.3.1-macOS.dmg**. A window opens showing TaskLens and
+1. Double-click **TaskLens-1.3.2-macOS.dmg**. A window opens showing TaskLens and
    your Applications folder.
 2. **Drag the TaskLens icon onto the Applications folder.**
 3. Eject the disk image (click ⏏ next to "TaskLens" in Finder's sidebar).
@@ -94,7 +94,7 @@ you how many folders it couldn't read.
 
 **Installer (recommended)**
 
-1. Double-click **TaskLens-1.3.1-Windows-x64-Setup.exe**.
+1. Double-click **TaskLens-1.3.2-Windows-x64-Setup.exe**.
 2. If Windows shows **"Windows protected your PC"**, click **More info → Run
    anyway**. *(This appears for new apps that aren't yet widely downloaded.)*
 3. Click **Yes** when asked whether to allow changes (it installs into Program
@@ -107,7 +107,7 @@ A Start menu entry and a desktop shortcut are created.
 
 **Portable (no install)**
 
-Double-click **TaskLens-1.3.1-Windows-x64-portable.exe** from anywhere. Nothing is
+Double-click **TaskLens-1.3.2-Windows-x64-portable.exe** from anywhere. Nothing is
 installed; settings are kept in your user profile.
 
 ### 3.3 Linux
@@ -117,19 +117,19 @@ Open a terminal in the folder where you downloaded the file.
 **Ubuntu, Debian, Mint, Pop!_OS**
 
 ```bash
-sudo apt install ./tasklens_1.3.1-1_amd64.deb
+sudo apt install ./tasklens_1.3.2-1_amd64.deb
 ```
 
 **Fedora, RHEL, CentOS Stream**
 
 ```bash
-sudo dnf install ./tasklens-1.3.1-1.x86_64.rpm
+sudo dnf install ./tasklens-1.3.2-1.x86_64.rpm
 ```
 
 **openSUSE**
 
 ```bash
-sudo zypper install ./tasklens-1.3.1-1.x86_64.rpm
+sudo zypper install ./tasklens-1.3.2-1.x86_64.rpm
 ```
 
 Then open **TaskLens** from your app menu, or type `tasklens` in a terminal.
@@ -152,6 +152,12 @@ how long the computer has been **up** since it last restarted.
 
 ### 4.1 Processes: what's running
 
+- **Click the Memory card** to see **what's using memory**. Each app is shown once,
+  with all of its processes added together (Chrome, for example, runs dozens). On
+  Windows you also see **Windows itself** (the kernel and drivers) and **Not linked
+  to one app** (compressed memory, graphics and protected system processes). This is
+  why a freshly started Windows PC can already show 6–8 GB in use. Click an app's name
+  to list its processes below, where you can end the ones you don't need.
 - **What's slowing things down** explains the situation in a sentence or two, for
   example: *"python3.11 is using 48 GB (more than all of your memory, so the rest
   has been pushed to disk) and has been running for 2m 45s."* Click an app's name to

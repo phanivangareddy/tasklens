@@ -51,11 +51,11 @@ tab is closed, or straight away from the **Quit** button.
 
 | System | File | Install |
 |---|---|---|
-| macOS 11+ (Apple silicon and Intel) | `TaskLens-1.3.1-macOS.dmg` | Open it and drag **TaskLens** to **Applications**. |
-| Windows 10/11 (x64) | `TaskLens-1.3.1-Windows-x64-Setup.exe` | Run it. Adds Start menu and desktop shortcuts, and an uninstaller under *Settings → Apps*. |
-| Windows, no install | `TaskLens-1.3.1-Windows-x64-portable.exe`, `…-ARM64-portable.exe` | Double-click to run from anywhere (USB stick, Downloads). |
-| Fedora, RHEL, CentOS, openSUSE | `tasklens-1.3.1-1.x86_64.rpm`, `….aarch64.rpm` | `sudo dnf install ./tasklens-1.3.1-1.x86_64.rpm` |
-| Ubuntu, Debian, Mint | `tasklens_1.3.1-1_amd64.deb`, `…_arm64.deb` | `sudo apt install ./tasklens_1.3.1-1_amd64.deb` |
+| macOS 11+ (Apple silicon and Intel) | `TaskLens-1.3.2-macOS.dmg` | Open it and drag **TaskLens** to **Applications**. |
+| Windows 10/11 (x64) | `TaskLens-1.3.2-Windows-x64-Setup.exe` | Run it. Adds Start menu and desktop shortcuts, and an uninstaller under *Settings → Apps*. |
+| Windows, no install | `TaskLens-1.3.2-Windows-x64-portable.exe`, `…-ARM64-portable.exe` | Double-click to run from anywhere (USB stick, Downloads). |
+| Fedora, RHEL, CentOS, openSUSE | `tasklens-1.3.2-1.x86_64.rpm`, `….aarch64.rpm` | `sudo dnf install ./tasklens-1.3.2-1.x86_64.rpm` |
+| Ubuntu, Debian, Mint | `tasklens_1.3.2-1_amd64.deb`, `…_arm64.deb` | `sudo apt install ./tasklens_1.3.2-1_amd64.deb` |
 
 On Linux it appears in the app menu as **TaskLens**, or run `tasklens` in a terminal.
 `SHA256SUMS.txt` lists checksums so people can verify their download.

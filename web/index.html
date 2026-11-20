@@ -85,6 +85,17 @@ td.actions { display: flex; gap: 4px; }
 .tabs button { border-color: transparent; background: transparent; color: var(--muted); font-weight: 550; }
 .tabs button.on { background: var(--chip); color: var(--fg); }
 .card.link { cursor: pointer; } .card.link:hover { border-color: var(--accent); }
+.memhead { display: flex; justify-content: space-between; align-items: center; }
+.memhead h2 { font-size: 14px; margin: 0; }
+.memstack { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: var(--line); margin: 10px 0; }
+.memstack i { display: block; height: 100%; min-width: 2px; border-right: 1px solid var(--panel); }
+.memtable { width: 100%; border-collapse: collapse; }
+.memtable td { padding: 4px 6px; border-top: 1px solid var(--line); vertical-align: middle; }
+.memtable td.sw { width: 14px; } .memtable td.sw i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; }
+.memtable td.mbar { width: 30%; } .memtable td.mbar .bar { height: 8px; } .memtable td.mbar .bar > i { background: var(--mem); }
+.memtable a { color: var(--accent); cursor: pointer; }
+.memtable small { color: var(--muted); display: block; }
+.memnote { color: var(--muted); font-size: 12px; margin: 8px 0 0; }
 .crumbs { display: flex; flex-wrap: wrap; gap: 2px; align-items: center; margin: 4px 0 10px; font-size: 15px; }
 .crumbs a { color: var(--accent); cursor: pointer; padding: 2px 4px; border-radius: 5px; }
 .crumbs a:hover { background: var(--chip); }
@@ -188,6 +199,13 @@ td.wrap { white-space: normal; min-width: 220px; }
 <main id="main">
   <section class="cards" id="cards"></section>
   <div id="procView">
+  <section class="panel" id="memPanel" hidden>
+    <div class="memhead"><h2>What's using memory</h2><button class="small" id="memClose">Close</button></div>
+    <p class="lead" id="memLead"></p>
+    <div class="memstack" id="memStack"></div>
+    <table class="memtable"><tbody id="memRows"></tbody></table>
+    <p class="memnote" id="memNote"></p>
+  </section>
   <section class="insights"><h2>What's slowing things down</h2><ul id="insights"><li>Measuring…</li></ul></section>
   <div class="toolbar">
     <input id="search" type="search" placeholder="Search by name, PID, user or command">
